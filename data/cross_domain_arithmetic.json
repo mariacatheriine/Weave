@@ -1,0 +1,75 @@
+{
+  "problemName": "ArithmeticRegisterAssignment",
+  "domain": "Arithmetic State Transitions",
+  "initialState": {
+    "x": 0.0,
+    "y": 0.0,
+    "status": "INIT",
+    "log_count": 0
+  },
+  "goal": [
+    { "variable": "x", "op": "==", "value": 10.0 },
+    { "variable": "y", "op": "==", "value": 5.0 },
+    { "variable": "status", "op": "==", "value": "XY_SET" }
+  ],
+  "resources": ["cpu"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "SetXTo10",
+      "name": "Set X to 10",
+      "description": "Assigns register x the value 10; the only capability applicable from the initial status.",
+      "type": "COMPUTATION", "mechanism": "register_set(x, 10.0)",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "status", "op": "==", "value": "INIT" } ],
+      "effects": [
+        { "variable": "x", "op": "SET", "value": 10.0 },
+        { "variable": "status", "op": "SET", "value": "X_SET" }
+      ],
+      "resources": ["cpu"],
+      "qos": { "timeMs": 2.0, "money": 0.0, "resource": 0.1, "risk": 0.0 },
+      "reliability": 1.0, "availability": true
+    },
+    {
+      "id": "SetXTo3",
+      "name": "Set X to 3 (off-goal alternative)",
+      "description": "An alternative from the same initial status that satisfies the same downstream precondition as SetXTo10 but does NOT match the goal's required x value -- demonstrates that local precondition-effect COMPOSABILITY does not imply reaching the GOAL.",
+      "type": "COMPUTATION", "mechanism": "register_set(x, 3.0)",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "status", "op": "==", "value": "INIT" } ],
+      "effects": [
+        { "variable": "x", "op": "SET", "value": 3.0 },
+        { "variable": "status", "op": "SET", "value": "X_SET" }
+      ],
+      "resources": ["cpu"],
+      "qos": { "timeMs": 2.0, "money": 0.0, "resource": 0.1, "risk": 0.0 },
+      "reliability": 1.0, "availability": true
+    },
+    {
+      "id": "SetYTo5",
+      "name": "Set Y to 5",
+      "type": "COMPUTATION", "mechanism": "register_set(y, 5.0)",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "status", "op": "==", "value": "X_SET" } ],
+      "effects": [
+        { "variable": "y", "op": "SET", "value": 5.0 },
+        { "variable": "status", "op": "SET", "value": "XY_SET" }
+      ],
+      "resources": ["cpu"],
+      "qos": { "timeMs": 2.0, "money": 0.0, "resource": 0.1, "risk": 0.0 },
+      "reliability": 1.0, "availability": true
+    },
+    {
+      "id": "LogCheckpoint",
+      "name": "Log Checkpoint",
+      "description": "Irrelevant to the goal: touches only log_count, which the goal never mentions.",
+      "type": "FUNCTION", "mechanism": "log()",
+      "inputs": [], "outputs": [],
+      "preconditions": [],
+      "effects": [ { "variable": "log_count", "op": "SET", "value": 1 } ],
+      "resources": ["cpu"],
+      "qos": { "timeMs": 1.0, "money": 0.0, "resource": 0.05, "risk": 0.0 },
+      "reliability": 1.0, "availability": true
+    }
+  ]
+}

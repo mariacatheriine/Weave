@@ -1,0 +1,60 @@
+{
+  "problemName": "PaymentAlternativeImplementations",
+  "domain": "E-Commerce Order Fulfillment",
+  "initialState": {
+    "order_exists": true,
+    "payment_status": "NOT_STARTED"
+  },
+  "goal": [
+    { "variable": "payment_status", "op": "==", "value": "SUCCESS" }
+  ],
+  "resources": ["database", "payment_gateway", "ui_session"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "MakePayment_API",
+      "name": "Make Payment via REST API",
+      "description": "Charges the customer through the external payment gateway's REST API.",
+      "type": "API",
+      "mechanism": "POST /payments",
+      "inputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["payment_gateway"],
+      "qos": { "timeMs": 120.0, "money": 0.02, "resource": 1.0, "risk": 0.02 },
+      "reliability": 0.995,
+      "availability": true
+    },
+    {
+      "id": "MakePayment_DB",
+      "name": "Make Payment via Direct DB Write",
+      "description": "Records the payment directly in the ledger table (internal/trusted callers only).",
+      "type": "DATABASE",
+      "mechanism": "INSERT INTO payments(order_id, status) VALUES (?, 'SUCCESS')",
+      "inputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["database"],
+      "qos": { "timeMs": 40.0, "money": 0.0, "resource": 1.0, "risk": 0.01 },
+      "reliability": 0.999,
+      "availability": true
+    },
+    {
+      "id": "MakePayment_GUI",
+      "name": "Make Payment via Checkout UI",
+      "description": "A human clicks through the hosted checkout page's 'Pay Now' button.",
+      "type": "GUI",
+      "mechanism": "CLICK #pay-now-button",
+      "inputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["ui_session", "payment_gateway"],
+      "qos": { "timeMs": 8000.0, "money": 0.02, "resource": 0.3, "risk": 0.08 },
+      "reliability": 0.95,
+      "availability": true
+    }
+  ]
+}

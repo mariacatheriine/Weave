@@ -1,0 +1,77 @@
+{
+  "problemName": "OperationalTradeoffs",
+  "domain": "E-Commerce Order Fulfillment",
+  "initialState": {
+    "order_exists": true,
+    "payment_status": "NOT_STARTED",
+    "package_dispatched": false
+  },
+  "goal": [
+    { "variable": "payment_status", "op": "==", "value": "SUCCESS" },
+    { "variable": "package_dispatched", "op": "==", "value": true }
+  ],
+  "resources": ["payment_gateway_a", "payment_gateway_b", "payment_gateway_c", "carrier_express", "carrier_economy"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "PaymentGateway_Premium",
+      "name": "Payment Gateway A (Premium)",
+      "description": "Higher cost, higher reliability, lower risk -- a premium payment processor.",
+      "type": "API", "mechanism": "POST https://gateway-a.example/charge",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["payment_gateway_a"],
+      "qos": { "timeMs": 150.0, "money": 0.020, "resource": 1.0, "risk": 0.010 },
+      "reliability": 0.999, "availability": true
+    },
+    {
+      "id": "PaymentGateway_Budget",
+      "name": "Payment Gateway B (Budget)",
+      "description": "Lower cost, lower reliability, higher risk -- a discount payment processor.",
+      "type": "API", "mechanism": "POST https://gateway-b.example/charge",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["payment_gateway_b"],
+      "qos": { "timeMs": 90.0, "money": 0.005, "resource": 1.0, "risk": 0.050 },
+      "reliability": 0.970, "availability": true
+    },
+    {
+      "id": "PaymentGateway_Unavailable",
+      "name": "Payment Gateway C (Currently Down)",
+      "description": "A cheap third option that is temporarily unavailable -- tests availability handling.",
+      "type": "API", "mechanism": "POST https://gateway-c.example/charge",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["payment_gateway_c"],
+      "qos": { "timeMs": 70.0, "money": 0.003, "resource": 1.0, "risk": 0.060 },
+      "reliability": 0.960, "availability": false
+    },
+    {
+      "id": "Dispatch_Express",
+      "name": "Dispatch via Express Carrier",
+      "description": "Fast, expensive shipping.",
+      "type": "SERVICE", "mechanism": "POST /shipping/express",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "payment_status", "op": "==", "value": "SUCCESS" } ],
+      "effects": [ { "variable": "package_dispatched", "op": "SET", "value": true } ],
+      "resources": ["carrier_express"],
+      "qos": { "timeMs": 200.0, "money": 12.50, "resource": 1.0, "risk": 0.02 },
+      "reliability": 0.995, "availability": true
+    },
+    {
+      "id": "Dispatch_Economy",
+      "name": "Dispatch via Economy Carrier",
+      "description": "Slow, cheap shipping.",
+      "type": "SERVICE", "mechanism": "POST /shipping/economy",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "payment_status", "op": "==", "value": "SUCCESS" } ],
+      "effects": [ { "variable": "package_dispatched", "op": "SET", "value": true } ],
+      "resources": ["carrier_economy"],
+      "qos": { "timeMs": 4000.0, "money": 2.00, "resource": 1.0, "risk": 0.04 },
+      "reliability": 0.985, "availability": true
+    }
+  ]
+}

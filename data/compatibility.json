@@ -1,0 +1,66 @@
+{
+  "problemName": "OrderCompatibilityCheck",
+  "domain": "E-Commerce Order Fulfillment",
+  "initialState": {
+    "cart_exists": true,
+    "cart_item_count": 2,
+    "order_exists": false,
+    "payment_status": "NOT_STARTED"
+  },
+  "goal": [
+    { "variable": "order_exists", "op": "==", "value": true },
+    { "variable": "payment_status", "op": "==", "value": "SUCCESS" }
+  ],
+  "resources": ["database", "payment_gateway"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "description": "Converts an existing cart into a formal order record.",
+      "type": "SERVICE",
+      "mechanism": "POST /orders",
+      "inputs": [ { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "cart_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "order_exists", "op": "SET", "value": true } ],
+      "constraints": [],
+      "resources": ["database"],
+      "qos": { "timeMs": 50.0, "money": 0.0, "resource": 1.0, "risk": 0.01 },
+      "reliability": 0.99,
+      "availability": true
+    },
+    {
+      "id": "MakePayment",
+      "name": "Make Payment",
+      "description": "Charges the customer for an existing order.",
+      "type": "API",
+      "mechanism": "POST /payments",
+      "inputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "constraints": [],
+      "resources": ["payment_gateway"],
+      "qos": { "timeMs": 120.0, "money": 0.02, "resource": 1.0, "risk": 0.02 },
+      "reliability": 0.995,
+      "availability": true
+    },
+    {
+      "id": "CancelCart",
+      "name": "Cancel Cart",
+      "description": "Discards the cart -- only valid before an order has been created from it.",
+      "type": "SERVICE",
+      "mechanism": "DELETE /cart",
+      "inputs": [ { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": false } ],
+      "effects": [ { "variable": "cart_exists", "op": "SET", "value": false } ],
+      "constraints": [],
+      "resources": ["database"],
+      "qos": { "timeMs": 30.0, "money": 0.0, "resource": 0.5, "risk": 0.01 },
+      "reliability": 0.99,
+      "availability": true
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+capability,goalRelevanceScore,satisfiedCount,violatedCount,assessment
+CreateOrder,0.333333,1,0,GOAL-CONTRIBUTING
+MakePayment,0.333333,1,0,GOAL-CONTRIBUTING
+SendNotification,0.333333,1,0,GOAL-CONTRIBUTING
+AuditLog,0.000000,0,0,IRRELEVANT (no goal-variable overlap)
+UpdateWishlist,0.000000,0,0,IRRELEVANT (no goal-variable overlap)
+GenerateRecommendation,0.000000,0,0,IRRELEVANT (no goal-variable overlap)
+SendMarketingEmail,0.000000,0,0,IRRELEVANT (no goal-variable overlap)

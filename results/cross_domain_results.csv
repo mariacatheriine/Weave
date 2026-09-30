@@ -1,0 +1,4 @@
+c1,c2,isComposableOrScore,goalRelevance
+SetXTo10,SetYTo5,1,0.000000
+SetXTo3,SetYTo5,1,-0.666667
+LogCheckpoint,-,-,0.000000

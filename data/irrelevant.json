@@ -1,0 +1,104 @@
+{
+  "problemName": "GoalRelevanceFiltering",
+  "domain": "E-Commerce Order Fulfillment",
+  "initialState": {
+    "cart_exists": true,
+    "order_exists": false,
+    "payment_status": "NOT_STARTED",
+    "notification_sent": false,
+    "wishlist_updated": false,
+    "audit_logged": false,
+    "recommendation_generated": false,
+    "marketing_email_sent": false
+  },
+  "goal": [
+    { "variable": "order_exists", "op": "==", "value": true },
+    { "variable": "payment_status", "op": "==", "value": "SUCCESS" },
+    { "variable": "notification_sent", "op": "==", "value": true }
+  ],
+  "resources": ["database", "payment_gateway", "notification_service"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "type": "SERVICE", "mechanism": "POST /orders",
+      "inputs": [], "outputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "cart_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "order_exists", "op": "SET", "value": true } ],
+      "resources": ["database"],
+      "qos": { "timeMs": 50.0, "money": 0.0, "resource": 1.0, "risk": 0.01 },
+      "reliability": 0.99, "availability": true
+    },
+    {
+      "id": "MakePayment",
+      "name": "Make Payment",
+      "type": "API", "mechanism": "POST /payments",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [ { "variable": "payment_status", "op": "SET", "value": "SUCCESS" } ],
+      "resources": ["payment_gateway"],
+      "qos": { "timeMs": 120.0, "money": 0.02, "resource": 1.0, "risk": 0.02 },
+      "reliability": 0.995, "availability": true
+    },
+    {
+      "id": "SendNotification",
+      "name": "Send Order Notification",
+      "type": "EVENT", "mechanism": "trigger=PaymentSucceeded",
+      "inputs": [], "outputs": [],
+      "preconditions": [ { "variable": "payment_status", "op": "==", "value": "SUCCESS" } ],
+      "effects": [ { "variable": "notification_sent", "op": "SET", "value": true } ],
+      "resources": ["notification_service"],
+      "qos": { "timeMs": 20.0, "money": 0.001, "resource": 0.2, "risk": 0.01 },
+      "reliability": 0.98, "availability": true
+    },
+    {
+      "id": "AuditLog",
+      "name": "Write Audit Log Entry",
+      "description": "Compliance logging -- never touches any goal-relevant variable.",
+      "type": "FUNCTION", "mechanism": "log.append(event)",
+      "inputs": [], "outputs": [],
+      "preconditions": [],
+      "effects": [ { "variable": "audit_logged", "op": "SET", "value": true } ],
+      "resources": ["database"],
+      "qos": { "timeMs": 5.0, "money": 0.0, "resource": 0.1, "risk": 0.0 },
+      "reliability": 1.0, "availability": true
+    },
+    {
+      "id": "UpdateWishlist",
+      "name": "Update Customer Wishlist",
+      "description": "A customer convenience feature, independent of order fulfillment.",
+      "type": "SERVICE", "mechanism": "PUT /wishlist",
+      "inputs": [], "outputs": [],
+      "preconditions": [],
+      "effects": [ { "variable": "wishlist_updated", "op": "SET", "value": true } ],
+      "resources": ["database"],
+      "qos": { "timeMs": 30.0, "money": 0.0, "resource": 0.3, "risk": 0.01 },
+      "reliability": 0.99, "availability": true
+    },
+    {
+      "id": "GenerateRecommendation",
+      "name": "Generate Product Recommendation",
+      "description": "Upsell suggestion engine -- runs independently of order fulfillment.",
+      "type": "COMPUTATION", "mechanism": "recommend(user_id)",
+      "inputs": [], "outputs": [],
+      "preconditions": [],
+      "effects": [ { "variable": "recommendation_generated", "op": "SET", "value": true } ],
+      "resources": ["database"],
+      "qos": { "timeMs": 60.0, "money": 0.0, "resource": 0.8, "risk": 0.02 },
+      "reliability": 0.97, "availability": true
+    },
+    {
+      "id": "SendMarketingEmail",
+      "name": "Send Marketing Email",
+      "description": "Promotional messaging -- unrelated to fulfilling the current order.",
+      "type": "MESSAGE", "mechanism": "queue.publish(marketing_email)",
+      "inputs": [], "outputs": [],
+      "preconditions": [],
+      "effects": [ { "variable": "marketing_email_sent", "op": "SET", "value": true } ],
+      "resources": ["notification_service"],
+      "qos": { "timeMs": 15.0, "money": 0.0005, "resource": 0.1, "risk": 0.01 },
+      "reliability": 0.98, "availability": true
+    }
+  ]
+}

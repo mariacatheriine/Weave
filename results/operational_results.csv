@@ -1,0 +1,6 @@
+capability,timeMs,money,reliability,risk,available
+PaymentGateway_Premium,150.000000,0.020000,0.999000,0.010000,1
+PaymentGateway_Budget,90.000000,0.005000,0.970000,0.050000,1
+PaymentGateway_Unavailable,70.000000,0.003000,0.960000,0.060000,0
+Dispatch_Express,200.000000,12.500000,0.995000,0.020000,1
+Dispatch_Economy,4000.000000,2.000000,0.985000,0.040000,1

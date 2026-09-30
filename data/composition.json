@@ -1,0 +1,69 @@
+{
+  "problemName": "CompletePurchaseAndInvoice",
+  "domain": "E-Commerce Order Fulfillment",
+  "initialState": {
+    "cart_exists": true,
+    "cart_item_count": 3,
+    "order_exists": false,
+    "order_status": "NOT_STARTED",
+    "payment_status": "NOT_STARTED",
+    "invoice_generated": false
+  },
+  "goal": [
+    { "variable": "order_status", "op": "==", "value": "PAID" },
+    { "variable": "payment_status", "op": "==", "value": "SUCCESS" },
+    { "variable": "invoice_generated", "op": "==", "value": true }
+  ],
+  "resources": ["database", "payment_gateway", "invoice_service"],
+  "globalConstraints": [],
+  "capabilities": [
+    {
+      "id": "CreateOrder",
+      "name": "Create Order",
+      "type": "SERVICE",
+      "mechanism": "POST /orders",
+      "inputs": [ { "name": "cart_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "cart_exists", "op": "==", "value": true } ],
+      "effects": [
+        { "variable": "order_exists", "op": "SET", "value": true },
+        { "variable": "order_status", "op": "SET", "value": "CREATED" }
+      ],
+      "resources": ["database"],
+      "qos": { "timeMs": 50.0, "money": 0.0, "resource": 1.0, "risk": 0.01 },
+      "reliability": 0.99,
+      "availability": true
+    },
+    {
+      "id": "MakePayment_API",
+      "name": "Make Payment (API)",
+      "type": "API",
+      "mechanism": "POST /payments",
+      "inputs": [ { "name": "order_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "order_exists", "op": "==", "value": true } ],
+      "effects": [
+        { "variable": "payment_status", "op": "SET", "value": "SUCCESS" },
+        { "variable": "order_status", "op": "SET", "value": "PAID" }
+      ],
+      "resources": ["payment_gateway"],
+      "qos": { "timeMs": 120.0, "money": 0.02, "resource": 1.0, "risk": 0.02 },
+      "reliability": 0.995,
+      "availability": true
+    },
+    {
+      "id": "GenerateInvoice",
+      "name": "Generate Invoice",
+      "type": "FUNCTION",
+      "mechanism": "invoice_render(payment_id)",
+      "inputs": [ { "name": "payment_id", "type": "UUID", "domain": "valid UUID", "required": true } ],
+      "outputs": [ { "name": "invoice_id", "type": "UUID", "domain": "valid UUID" } ],
+      "preconditions": [ { "variable": "payment_status", "op": "==", "value": "SUCCESS" } ],
+      "effects": [ { "variable": "invoice_generated", "op": "SET", "value": true } ],
+      "resources": ["invoice_service"],
+      "qos": { "timeMs": 40.0, "money": 0.0, "resource": 0.5, "risk": 0.005 },
+      "reliability": 0.999,
+      "availability": true
+    }
+  ]
+}

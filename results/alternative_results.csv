@@ -1,0 +1,4 @@
+implA,implB,functionalSimilarity,implementationSimilarity,overallSimilarity
+MakePayment_API,MakePayment_DB,1.000000,-0.034860,0.930202
+MakePayment_API,MakePayment_GUI,1.000000,0.195116,0.859949
+MakePayment_DB,MakePayment_GUI,1.000000,-0.142714,0.848284

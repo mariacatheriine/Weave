@@ -1,0 +1,2 @@
+compositeId,numPreconditions,numEffects,timeMs,money,reliability,effectsHomomorphismExact,timeMoneyHomomorphismExact,riskReliabilityHomomorphismExact
+CreateOrder_THEN_MakePayment_API_THEN_GenerateInvoice,1,4,210.000000,0.020000,0.984065,1,1,1
