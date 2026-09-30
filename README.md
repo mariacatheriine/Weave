@@ -1,6 +1,6 @@
 # Weave - Vector Embedding for Capability Composition
 
-**PCCST503 — Machine Learning, Assignment 1**
+**PCCST503 — Machine Learning, Assignment 2**
 
 A C++17 system that encodes formally specified **states**, **goals**, and
 **capabilities** into vector representations, and investigates whether
